@@ -1,10 +1,15 @@
 /* ============================================================
    ECOTRACK — Main App Controller
    ============================================================ */
+/**
+ * Main application controller module managing navigation, tabs, cursor effects, forms, chat, and database interaction.
+ */
 const App = (() => {
   let db, cat = 'transport', range = 'week';
 
-  // ---- Init ----
+  /**
+   * Initializes database state, listeners, layouts, and interactive modules.
+   */
   function init() {
     db = Data.load();
     setupNav(); setupTabs(); setupCursor(); setupTilt();
@@ -15,7 +20,9 @@ const App = (() => {
   }
   document.addEventListener('DOMContentLoaded', init);
 
-  // ---- Navigation ----
+  /**
+   * Scans scrolling action to toggle nav header scrolled styling state.
+   */
   function setupNav() {
     let last = 0;
     window.addEventListener('scroll', () => {
@@ -24,12 +31,19 @@ const App = (() => {
     }, {passive:true});
   }
 
-  // ---- Tabs ----
+  /**
+   * Sets up tab selection button event listeners.
+   */
   function setupTabs() {
     document.querySelectorAll('.nav-tab').forEach(btn => {
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
     });
   }
+
+  /**
+   * Switches views between tabs (Dashboard, Log, Insights, AI Advisor, Settings).
+   * @param {string} tab - The target tab key name.
+   */
   function switchTab(tab) {
     document.querySelectorAll('.nav-tab').forEach(b => { b.classList.toggle('active', b.dataset.tab===tab); b.setAttribute('aria-selected', b.dataset.tab===tab); });
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id===`tab-${tab}`));
@@ -44,7 +58,9 @@ const App = (() => {
     lucide.createIcons();
   }
 
-  // ---- Custom Cursor ----
+  /**
+   * Configures 3D fluid custom cursor trailing movements.
+   */
   function setupCursor() {
     const c = document.getElementById('cursor');
     let cx=0,cy=0,tx=0,ty=0;
@@ -59,7 +75,9 @@ const App = (() => {
     document.addEventListener('mouseout', e => { if(e.target.closest(hover)) c.classList.remove('hover'); });
   }
 
-  // ---- 3D Tilt ----
+  /**
+   * Sets up mouse parallax card tilt effects.
+   */
   function setupTilt() {
     document.addEventListener('mousemove', e => {
       document.querySelectorAll('.tilt-card').forEach(card => {
@@ -80,7 +98,9 @@ const App = (() => {
     });
   }
 
-  // ---- Scroll Reveal ----
+  /**
+   * Uses IntersectionObserver to reveal elements as they enter the viewport.
+   */
   function setupScrollReveal() {
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
@@ -90,7 +110,9 @@ const App = (() => {
     setTimeout(() => document.querySelectorAll('.tab-panel.active .reveal').forEach(r=>r.classList.add('visible')), 100);
   }
 
-  // ---- Dashboard ----
+  /**
+   * Updates state data and renders primary stats indicators.
+   */
   function renderDashboard() {
     const today = Utils.today();
     Utils.animateNum(document.getElementById('stat-today'), Data.dayTotal(db, today));
@@ -103,7 +125,9 @@ const App = (() => {
     document.getElementById('ai-insight-text').textContent = AI.generateTip(db);
   }
 
-  // ---- Log Form ----
+  /**
+   * Configures category select and log activity form buttons.
+   */
   function setupLogForm() {
     document.querySelectorAll('.cat-btn').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -144,6 +168,9 @@ const App = (() => {
     });
   }
 
+  /**
+   * Renders the input fields and types selection in the logger form.
+   */
   function renderLogForm() {
     const sel = document.getElementById('log-type');
     const factors = Data.FACTORS[cat];
@@ -151,6 +178,10 @@ const App = (() => {
     updateCO2Badge();
     lucide.createIcons();
   }
+
+  /**
+   * Performs dynamic calculation estimates to show real-time emission output.
+   */
   function updateCO2Badge() {
     const type = document.getElementById('log-type')?.value;
     const amt = parseFloat(document.getElementById('log-amount')?.value)||0;
@@ -158,6 +189,9 @@ const App = (() => {
     document.getElementById('co2-est').textContent = co2.toFixed(1);
   }
 
+  /**
+   * Displays the recently logged user actions in list view.
+   */
   function renderRecent() {
     const list = document.getElementById('recent-list');
     const recent = [...db.activities].reverse().slice(0,8);
@@ -172,9 +206,16 @@ const App = (() => {
       return `<div class="recent-item"><span class="recent-icon">${f?.icon||'📋'}</span><div class="recent-info"><div class="recent-title">${f?.label||a.type} — ${a.amount} ${f?.unit||''}</div><div class="recent-meta">${Utils.formatDate(a.date)}${a.time?' · '+a.time:''}</div></div><span class="recent-co2">${a.co2.toFixed(1)} kg</span><button class="recent-del" onclick="App.delActivity('${a.id}')" aria-label="Delete activity"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></div>`;
     }).join('');
   }
+
+  /**
+   * Deletes logged activity by item identifier.
+   * @param {string} id - Activity identifier.
+   */
   function delActivity(id) { db.activities=db.activities.filter(a=>a.id!==id); Data.save(db); renderRecent(); toast('🗑️','Deleted'); }
 
-  // ---- Insights ----
+  /**
+   * Gathers data context to render charts inside the Insights tab.
+   */
   function renderInsights() {
     const dates = range==='week' ? Utils.weekDates() : Utils.monthDates();
     Charts.renderBar(db, dates);
@@ -189,13 +230,19 @@ const App = (() => {
     });
   }
 
-  // ---- Chat ----
+  /**
+   * Submits prompt selection templates and text submissions.
+   */
   function setupChat() {
     document.getElementById('chat-form').addEventListener('submit', e => { e.preventDefault(); sendChat(); });
     document.querySelectorAll('.chip[data-prompt]').forEach(c => {
       c.addEventListener('click', () => { document.getElementById('chat-input').value=c.dataset.prompt; sendChat(); });
     });
   }
+
+  /**
+   * Sends user chat message and displays local AI query response.
+   */
   function sendChat() {
     const input = document.getElementById('chat-input');
     const msg = input.value.trim(); if (!msg) return;
@@ -208,7 +255,9 @@ const App = (() => {
     log.scrollTop = log.scrollHeight;
   }
 
-  // ---- Settings ----
+  /**
+   * Sets up goals setting and data exports click listeners.
+   */
   function setupSettings() {
     const goalIn = document.getElementById('setting-goal');
     const regionIn = document.getElementById('setting-region');
@@ -224,7 +273,9 @@ const App = (() => {
     document.getElementById('btn-clear').addEventListener('click', () => document.getElementById('modal').classList.remove('hidden'));
   }
 
-  // ---- Modal ----
+  /**
+   * Handles modal dialog configuration cancel and confirm events.
+   */
   function setupModal() {
     document.getElementById('modal-cancel').addEventListener('click', closeModal);
     document.getElementById('modal-confirm').addEventListener('click', () => {
@@ -232,9 +283,17 @@ const App = (() => {
       renderDashboard(); renderRecent(); toast('🗑️','All data cleared');
     });
   }
+
+  /**
+   * Closes data wiping validation confirmation window dialog.
+   */
   function closeModal() { document.getElementById('modal').classList.add('hidden'); }
 
-  // ---- Toast ----
+  /**
+   * Generates micro ambient banner notifications on user interactions.
+   * @param {string} icon - The visual icon indicator.
+   * @param {string} text - Message description payload.
+   */
   function toast(icon, text) {
     const wrap = document.getElementById('toast-wrap');
     const t = document.createElement('div'); t.className='toast';

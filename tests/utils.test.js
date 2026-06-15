@@ -1,3 +1,4 @@
+/** @jest-environment node */
 const Utils = require('../js/utils.js');
 
 describe('Utils module tests', () => {
@@ -16,7 +17,7 @@ describe('Utils module tests', () => {
     expect(today).toBe(expected);
   });
 
-  test('Utils.escape() escapes special HTML characters', () => {
+  test('Utils.escape() escapes special HTML characters in Node environment', () => {
     const input = '<div class="test">Hello & welcome\'s</div>';
     const escaped = Utils.escape(input);
     expect(escaped).toContain('&lt;');
@@ -55,5 +56,41 @@ describe('Utils module tests', () => {
     dates.forEach(d => {
       expect(d).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
+  });
+
+  test('Utils.animateNum() animates values correctly', () => {
+    jest.useFakeTimers();
+    const el = { textContent: '0' };
+    
+    // Stub global performance and requestAnimationFrame
+    const originalPerformance = global.performance;
+    const originalRequestAnimationFrame = global.requestAnimationFrame;
+    
+    let time = 0;
+    global.performance = { now: () => time };
+    global.requestAnimationFrame = (callback) => {
+      setTimeout(() => {
+        time += 100;
+        callback(time);
+      }, 0);
+    };
+
+    Utils.animateNum(el, 100, 500);
+
+    // Fast-forward time
+    jest.advanceTimersByTime(600);
+
+    expect(el.textContent).toBe(100);
+
+    // Test float version
+    el.textContent = '0.0';
+    Utils.animateNum(el, 10.5, 500);
+    jest.advanceTimersByTime(600);
+    expect(el.textContent).toBe('10.5');
+
+    // Clean up
+    global.performance = originalPerformance;
+    global.requestAnimationFrame = originalRequestAnimationFrame;
+    jest.useRealTimers();
   });
 });

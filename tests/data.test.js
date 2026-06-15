@@ -1,11 +1,23 @@
 global.Utils = require('../js/utils.js');
+
+// Mock localStorage globally
+const mockStorage = {};
+global.localStorage = {
+  getItem: jest.fn(key => mockStorage[key] || null),
+  setItem: jest.fn((key, val) => { mockStorage[key] = val; }),
+  removeItem: jest.fn(key => { delete mockStorage[key]; })
+};
+
 const Data = require('../js/data.js');
 
 describe('Data module tests', () => {
   let db;
 
   beforeEach(() => {
-    // Setup a standard mock database state
+    // Reset storage
+    Object.keys(mockStorage).forEach(k => delete mockStorage[k]);
+    jest.clearAllMocks();
+
     db = {
       activities: [
         { id: '1', category: 'transport', type: 'car', amount: 10, co2: 2.1, date: '2026-06-15', time: '10:00 AM' },
@@ -16,31 +28,48 @@ describe('Data module tests', () => {
     };
   });
 
+  test('Data.load() and Data.save() handle localStorage correctly', () => {
+    // Save state
+    Data.save(db);
+    expect(global.localStorage.setItem).toHaveBeenCalledWith('ecotrack', JSON.stringify(db));
+
+    // Load state
+    const loaded = Data.load();
+    expect(loaded.activities.length).toBe(3);
+    expect(loaded.settings.goal).toBe(50);
+
+    // Wipes state
+    Data.clear();
+    expect(global.localStorage.removeItem).toHaveBeenCalledWith('ecotrack');
+
+    // Load empty state returns default blank layout
+    const empty = Data.load();
+    expect(empty.activities).toEqual([]);
+    expect(empty.settings.goal).toBe(50);
+  });
+
+  test('Data.load() handles syntax errors gracefully', () => {
+    global.localStorage.getItem.mockImplementationOnce(() => 'invalid json {');
+    const result = Data.load();
+    expect(result.activities).toEqual([]);
+  });
+
   test('Data.calc() calculates CO2 correctly for factors', () => {
-    // Transport - car (factor 0.21)
     expect(Data.calc('transport', 'car', 10)).toBe(2.1);
-    // Food - vegan (factor 0.9)
     expect(Data.calc('food', 'vegan', 2)).toBe(1.8);
-    // Energy - electricity (factor 0.42 global)
     expect(Data.calc('energy', 'electricity', 10, 'global')).toBe(4.2);
-    // Energy - electricity (factor 0.71 India)
     expect(Data.calc('energy', 'electricity', 10, 'in')).toBe(7.1);
-    // Invalid/missing factors return 0
     expect(Data.calc('invalid', 'type', 10)).toBe(0);
   });
 
   test('Data.dayTotal() sums up correct total emissions for a day', () => {
-    expect(Data.dayTotal(db, '2026-06-15')).toBe(5.4); // 2.1 + 3.3
+    expect(Data.dayTotal(db, '2026-06-15')).toBe(5.4);
     expect(Data.dayTotal(db, '2026-06-14')).toBe(2.1);
     expect(Data.dayTotal(db, '2026-06-13')).toBe(0);
   });
 
   test('Data.avgDaily() calculates mathematical daily average', () => {
-    // Unique dates are '2026-06-15' and '2026-06-14' (2 days)
-    // Total co2 = 2.1 + 3.3 + 2.1 = 7.5
     expect(Data.avgDaily(db)).toBeCloseTo(3.75);
-
-    // Empty DB returns 0
     expect(Data.avgDaily({ activities: [] })).toBe(0);
   });
 
@@ -53,7 +82,6 @@ describe('Data module tests', () => {
       shopping: 0
     });
 
-    // Breakdown filtered by specific dates
     const breakdownFiltered = Data.catBreakdown(db, ['2026-06-15']);
     expect(breakdownFiltered).toEqual({
       transport: 2.1,
@@ -64,22 +92,17 @@ describe('Data module tests', () => {
   });
 
   test('Data.streak() measures correct active day streaks', () => {
-    // Mock Utils.today to return '2026-06-15'
     const originalToday = Utils.today;
     Utils.today = () => '2026-06-15';
 
-    // Consecutive days: June 15, June 14
     expect(Data.streak(db)).toBe(2);
 
-    // Add activity for June 13
     db.activities.push({ id: '4', category: 'shopping', type: 'clothing', amount: 1, co2: 10, date: '2026-06-13' });
     expect(Data.streak(db)).toBe(3);
 
-    // Add activity with a gap (June 11)
     db.activities.push({ id: '5', category: 'shopping', type: 'clothing', amount: 1, co2: 10, date: '2026-06-11' });
-    expect(Data.streak(db)).toBe(3); // Gap at June 12 breaks streak
+    expect(Data.streak(db)).toBe(3); // Gap breaks streak
 
-    // Reset mock
     Utils.today = originalToday;
   });
 });

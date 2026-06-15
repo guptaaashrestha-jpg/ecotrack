@@ -23,12 +23,12 @@ const Utils = {
    * @returns {string} The escaped HTML string.
    */
   escape: s => {
-    if (typeof document === 'undefined') {
-      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-    const d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   },
 
   /**

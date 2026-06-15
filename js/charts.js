@@ -1,6 +1,9 @@
 /* ============================================================
    ECOTRACK — Charts Module
    ============================================================ */
+/**
+ * Charts module utilizing Chart.js to render data visualizations for carbon footprint.
+ */
 const Charts = (() => {
   let donut, trend, bar;
   const C = { transport:'#00ff87', energy:'#fb923c', food:'#f87171', shopping:'#7c3aed' };
@@ -13,6 +16,10 @@ const Charts = (() => {
   Chart.defaults.maintainAspectRatio = false;
   const tip = { backgroundColor:'rgba(8,12,10,0.92)', padding:10, cornerRadius:8, titleFont:{weight:'600'} };
 
+  /**
+   * Renders the category breakdown donut chart for today's activities.
+   * @param {Object} d - The database state.
+   */
   function renderDonut(d) {
     const ctx = document.getElementById('donut-chart');
     if (!ctx) return;
@@ -44,6 +51,10 @@ const Charts = (() => {
     });
   }
 
+  /**
+   * Renders the 7-day emission trend line chart.
+   * @param {Object} d - The database state.
+   */
   function renderTrend(d) {
     const ctx = document.getElementById('trend-chart');
     if (!ctx) return;
@@ -74,6 +85,11 @@ const Charts = (() => {
     });
   }
 
+  /**
+   * Renders the category bar comparison chart.
+   * @param {Object} d - The database state.
+   * @param {string[]} dates - Array of YYYY-MM-DD dates to include in sum.
+   */
   function renderBar(d, dates) {
     const ctx = document.getElementById('bar-chart');
     if (!ctx) return;
