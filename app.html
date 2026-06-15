@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EcoTrack — Track your carbon footprint with 3D data visualizations, local AI insights, and actionable sustainability goals.">
+  <title>EcoTrack — Carbon Footprint Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div id="cursor" class="cursor"></div>
+
+  <!-- Fixed Top Nav -->
+  <nav id="nav" class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="#" class="logo" aria-label="EcoTrack home">
+        <i data-lucide="leaf" aria-hidden="true"></i>
+        <span>EcoTrack</span>
+      </a>
+      <div class="nav-links" role="tablist">
+        <button class="nav-tab active" data-tab="dashboard" role="tab" aria-selected="true" id="tab-btn-dashboard">Dashboard</button>
+        <button class="nav-tab" data-tab="log" role="tab" aria-selected="false" id="tab-btn-log">Log</button>
+        <button class="nav-tab" data-tab="insights" role="tab" aria-selected="false" id="tab-btn-insights">Insights</button>
+        <button class="nav-tab" data-tab="advisor" role="tab" aria-selected="false" id="tab-btn-advisor">AI Advisor</button>
+        <button class="nav-tab" data-tab="settings" role="tab" aria-selected="false" id="tab-btn-settings">Settings</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main id="main" class="main">
+
+    <!-- ======= DASHBOARD ======= -->
+    <section id="tab-dashboard" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-dashboard">
+      <div class="section-in reveal">
+        <h2 class="section-heading">Dashboard</h2>
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card tilt-card" style="--float-delay:0s">
+            <div class="stat-depth" style="--z:0px"><div class="stat-glow green"></div></div>
+            <div class="stat-depth" style="--z:20px"><i data-lucide="cloud" class="stat-icon green" aria-hidden="true"></i></div>
+            <div class="stat-depth" style="--z:40px">
+              <div class="stat-num" id="stat-today">0.0</div>
+              <div class="stat-label">Today's CO₂</div>
+              <div class="stat-unit">kg</div>
+            </div>
+          </div>
+          <div class="stat-card tilt-card" style="--float-delay:0.5s">
+            <div class="stat-depth" style="--z:0px"><div class="stat-glow blue"></div></div>
+            <div class="stat-depth" style="--z:20px"><i data-lucide="calendar" class="stat-icon blue" aria-hidden="true"></i></div>
+            <div class="stat-depth" style="--z:40px">
+              <div class="stat-num" id="stat-week">0.0</div>
+              <div class="stat-label">Weekly Total</div>
+              <div class="stat-unit">kg</div>
+            </div>
+          </div>
+          <div class="stat-card tilt-card" style="--float-delay:1s">
+            <div class="stat-depth" style="--z:0px"><div class="stat-glow violet"></div></div>
+            <div class="stat-depth" style="--z:20px"><i data-lucide="globe" class="stat-icon violet" aria-hidden="true"></i></div>
+            <div class="stat-depth" style="--z:40px">
+              <div class="stat-num" id="stat-global">0</div>
+              <div class="stat-label">vs Global Avg</div>
+              <div class="stat-unit">%</div>
+            </div>
+          </div>
+          <div class="stat-card tilt-card" style="--float-delay:1.5s">
+            <div class="stat-depth" style="--z:0px"><div class="stat-glow orange"></div></div>
+            <div class="stat-depth" style="--z:20px"><i data-lucide="flame" class="stat-icon orange" aria-hidden="true"></i></div>
+            <div class="stat-depth" style="--z:40px">
+              <div class="stat-num" id="stat-streak">0</div>
+              <div class="stat-label">Current Streak</div>
+              <div class="stat-unit">days</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-row">
+          <div class="chart-card tilt-card">
+            <h3>Category Breakdown</h3>
+            <div class="chart-wrap"><canvas id="donut-chart" aria-label="Donut chart showing CO2 breakdown by category"></canvas></div>
+          </div>
+          <div class="chart-card tilt-card">
+            <h3>7-Day Trend</h3>
+            <div class="chart-wrap"><canvas id="trend-chart" aria-label="Line chart showing 7 day emissions trend"></canvas></div>
+          </div>
+        </div>
+
+        <!-- AI Insight Banner -->
+        <div class="ai-banner tilt-card" id="ai-banner">
+          <i data-lucide="sparkles" class="banner-icon" aria-hidden="true"></i>
+          <p id="ai-insight-text">Log your first activity to get personalized insights</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= LOG ACTIVITY ======= -->
+    <section id="tab-log" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-log">
+      <div class="section-in reveal">
+        <h2 class="section-heading">Log Activity</h2>
+
+        <!-- Category Buttons -->
+        <div class="cat-buttons">
+          <button class="cat-btn active" data-cat="transport" id="cat-transport" aria-pressed="true">
+            <i data-lucide="car" aria-hidden="true"></i><span>Transport</span>
+          </button>
+          <button class="cat-btn" data-cat="energy" id="cat-energy" aria-pressed="false">
+            <i data-lucide="zap" aria-hidden="true"></i><span>Energy</span>
+          </button>
+          <button class="cat-btn" data-cat="food" id="cat-food" aria-pressed="false">
+            <i data-lucide="leaf" aria-hidden="true"></i><span>Food</span>
+          </button>
+          <button class="cat-btn" data-cat="shopping" id="cat-shopping" aria-pressed="false">
+            <i data-lucide="shopping-bag" aria-hidden="true"></i><span>Shopping</span>
+          </button>
+        </div>
+
+        <!-- Log Form -->
+        <div class="log-card tilt-card">
+          <form id="log-form" autocomplete="off">
+            <div class="field">
+              <select id="log-type" required></select>
+              <label for="log-type">Activity Type</label>
+            </div>
+            <div class="fields-row">
+              <div class="field">
+                <input type="number" id="log-amount" placeholder=" " min="0" step="0.1" required>
+                <label for="log-amount">Amount</label>
+              </div>
+              <div class="field">
+                <input type="date" id="log-date" required>
+                <label for="log-date">Date</label>
+              </div>
+            </div>
+            <div class="co2-badge" id="co2-badge" aria-live="polite">
+              <span id="co2-est">0.0</span> kg CO₂e
+            </div>
+            <button type="submit" class="btn-submit" id="btn-log">
+              <i data-lucide="plus" aria-hidden="true"></i> Log Activity
+            </button>
+          </form>
+          <div class="quick-chips">
+            <button type="button" class="chip" data-quick='{"cat":"transport","type":"car","amt":10}'>🚗 10km Drive</button>
+            <button type="button" class="chip" data-quick='{"cat":"food","type":"meat","amt":1}'>🥩 Meat Meal</button>
+            <button type="button" class="chip" data-quick='{"cat":"energy","type":"electricity","amt":5}'>⚡ 5 kWh</button>
+          </div>
+        </div>
+
+        <!-- Recent -->
+        <div class="recent-card tilt-card">
+          <h3>Recent Activities</h3>
+          <div id="recent-list" class="recent-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= INSIGHTS ======= -->
+    <section id="tab-insights" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-insights">
+      <div class="section-in reveal">
+        <h2 class="section-heading">Insights</h2>
+
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-range="week" id="toggle-week">Week</button>
+          <button class="toggle-btn" data-range="month" id="toggle-month">Month</button>
+        </div>
+
+        <div class="chart-card tilt-card insight-chart-card">
+          <h3>CO₂ by Category</h3>
+          <div class="chart-wrap chart-wrap-tall"><canvas id="bar-chart" aria-label="Bar chart comparing CO2 by category"></canvas></div>
+        </div>
+
+        <div class="goal-card tilt-card">
+          <h3>Weekly Goal</h3>
+          <div class="goal-bar-wrap">
+            <div class="goal-bar"><div class="goal-fill" id="goal-fill"></div></div>
+            <span class="goal-text" id="goal-text">0 / 50 kg CO₂e this week</span>
+          </div>
+        </div>
+
+        <div class="ai-summary tilt-card" id="ai-summary-card">
+          <i data-lucide="brain" class="banner-icon" aria-hidden="true"></i>
+          <p id="ai-summary-text">Log activities to see your weekly AI summary</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= AI ADVISOR ======= -->
+    <section id="tab-advisor" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-advisor">
+      <div class="section-in reveal">
+        <div class="chat-head">
+          <h2 class="section-heading">AI Advisor</h2>
+          <small class="privacy-label"><i data-lucide="shield-check" style="width:14px;height:14px" aria-hidden="true"></i> Powered by local intelligence · no data leaves your device</small>
+        </div>
+
+        <div class="prompt-chips">
+          <button class="chip" data-prompt="How can I reduce my food carbon?">🍽️ Reduce food carbon</button>
+          <button class="chip" data-prompt="Analyze my week">📊 Analyze my week</button>
+          <button class="chip" data-prompt="What is my biggest impact area?">🎯 Biggest impact area</button>
+        </div>
+
+        <div id="chat-log" class="chat-log" aria-live="polite" aria-label="Chat conversation">
+          <div class="chat-empty">
+            <svg width="64" height="64" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+              <path d="M35 45 C35 35, 65 35, 65 45 C65 55, 55 55, 52 60 L52 65" stroke="var(--green)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              <circle cx="52" cy="72" r="2" fill="var(--green)"/>
+            </svg>
+            <p>Ask me anything about your carbon footprint</p>
+          </div>
+        </div>
+
+        <form id="chat-form" class="chat-bar">
+          <input type="text" id="chat-input" placeholder="Ask about your carbon footprint..." aria-label="Type a message">
+          <button type="submit" aria-label="Send message"><i data-lucide="send" aria-hidden="true"></i></button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ======= SETTINGS ======= -->
+    <section id="tab-settings" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-settings">
+      <div class="section-in reveal">
+        <h2 class="section-heading">Settings</h2>
+
+        <div class="setting-card tilt-card">
+          <div class="setting-row">
+            <div><h4>Weekly CO₂ Goal</h4><p>Set your weekly emission target</p></div>
+            <div class="setting-input-wrap">
+              <input type="number" id="setting-goal" value="50" min="1" max="500" step="1" aria-label="Weekly CO2 goal in kg">
+              <span>kg</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div><h4>Region</h4><p>Adjusts electricity emission factor</p></div>
+            <select id="setting-region" aria-label="Select region">
+              <option value="global">Global Average</option>
+              <option value="us">United States</option>
+              <option value="eu">European Union</option>
+              <option value="uk">United Kingdom</option>
+              <option value="in">India</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div><h4>Export Data</h4><p>Download your data as JSON</p></div>
+            <button class="btn-ghost" id="btn-export" aria-label="Export data"><i data-lucide="download" aria-hidden="true"></i> Export</button>
+          </div>
+          <div class="setting-row danger">
+            <div><h4>Clear All Data</h4><p>Permanently delete everything</p></div>
+            <button class="btn-danger" id="btn-clear" aria-label="Clear all data"><i data-lucide="trash-2" aria-hidden="true"></i> Clear</button>
+          </div>
+        </div>
+
+        <div class="credits">
+          <p>EcoTrack v1.0 · Built for ML Empowerment Build Challenge 2026</p>
+          <p>Data sources: EPA, DEFRA, Our World in Data</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast-wrap" class="toast-wrap" aria-live="polite"></div>
+
+  <!-- Confirm Modal -->
+  <div id="modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <h3>Clear All Data?</h3>
+      <p>This permanently deletes all tracked activities and settings. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="modal-cancel">Cancel</button>
+        <button class="btn-danger" id="modal-confirm"><i data-lucide="trash-2" aria-hidden="true"></i> Clear Everything</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+  <script src="js/utils.js" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/ai.js" defer></script>
+  <script src="js/charts.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
